@@ -1024,11 +1024,12 @@ namespace ts {
                         }
                     }
                     try {
-
                         const presentWatcher = _fs.watch(
                             fileOrDirectory,
                             options,
-                            callback
+                            process.platform === "linux" || process.platform === "darwin" ?
+                                callbackChangingToMissingFileSystemEntry :
+                                callback
                         );
                         // Watch the missing file or directory or error
                         presentWatcher.on("error", () => invokeCallbackAndUpdateWatcher(watchMissingFileSystemEntry));
@@ -1040,6 +1041,18 @@ namespace ts {
                         // so instead of throwing error, use fs.watchFile
                         return watchPresentFileSystemEntryWithFsWatchFile();
                     }
+                }
+
+                function callbackChangingToMissingFileSystemEntry(event: "rename" | "change", relativeName: string | undefined) {
+                    if (event === "rename") {
+                        const fullPath = relativeName ?
+                            normalizePath(combinePaths(fileOrDirectory, relativeName)) :
+                            fileOrDirectory;
+                        if (fullPath === fileOrDirectory && !fileSystemEntryExists(fileOrDirectory, entryKind)) {
+                            return invokeCallbackAndUpdateWatcher(watchMissingFileSystemEntry);
+                        }
+                    }
+                    callback(event, relativeName);
                 }
 
                 /**
