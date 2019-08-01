@@ -998,6 +998,7 @@ namespace ts {
                  * @param createWatcher
                  */
                 function invokeCallbackAndUpdateWatcher(createWatcher: () => FileWatcher) {
+                    console.log(`Changing watcher: ${fileOrDirectory}`);
                     // Call the callback for current directory
                     callback("rename", "");
 
@@ -1024,6 +1025,7 @@ namespace ts {
                         }
                     }
                     try {
+                        console.log(`Creating present watcher: ${fileOrDirectory}`);
                         const presentWatcher = _fs.watch(
                             fileOrDirectory,
                             options,
@@ -1060,6 +1062,7 @@ namespace ts {
                  * Eg. on linux the number of watches are limited and one could easily exhaust watches and the exception ENOSPC is thrown when creating watcher at that point
                  */
                 function watchPresentFileSystemEntryWithFsWatchFile(): FileWatcher {
+                    console.log(`Creating watcher with FsWatchFile: ${fileOrDirectory}`);
                     return fallbackPollingWatchFile(fileOrDirectory, createFileWatcherCallback(callback), pollingInterval);
                 }
 
@@ -1068,6 +1071,7 @@ namespace ts {
                  * and switch to existing file or directory when the missing filesystem entry is created
                  */
                 function watchMissingFileSystemEntry(): FileWatcher {
+                    console.log(`Creating missing watcher: ${fileOrDirectory}`);
                     return fallbackPollingWatchFile(fileOrDirectory, (_fileName, eventKind) => {
                         if (eventKind === FileWatcherEventKind.Created && fileSystemEntryExists(fileOrDirectory, entryKind)) {
                             // Call the callback for current file or directory
